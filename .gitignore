@@ -1,2 +1,4 @@
 .env
 MyVenv/
+__pycache__
+*.pyc
