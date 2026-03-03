@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.database import engine , Base
+from app.models import User , Event , Registration , Certificate
 
 app = FastAPI() 
 
