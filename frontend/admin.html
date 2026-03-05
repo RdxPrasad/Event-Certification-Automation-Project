@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — EventCert</title>
+    <meta name="description" content="Manage events, upload attendance, generate and send certificates.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- ─── Navbar ─── -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div class="brand-icon">🎓</div>
+            <span>Event<span class="text-gradient">Cert</span></span>
+            <span class="badge badge-info" style="margin-left:8px;">Admin</span>
+        </div>
+        <div class="navbar-actions">
+            <div class="navbar-user" onclick="toggleAdminMenu()">
+                <div class="navbar-avatar" id="admin-avatar">AD</div>
+                <span id="admin-name" style="font-size:0.85rem;font-weight:500;">Admin</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ─── Admin Dropdown ─── -->
+    <div id="admin-dropdown"
+        style="display:none;position:fixed;top:64px;right:20px;z-index:150;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:8px;min-width:180px;box-shadow:var(--shadow-lg);">
+        <div style="padding:8px 12px;border-bottom:1px solid var(--border-color);margin-bottom:4px;">
+            <div style="font-size:0.85rem;font-weight:600;" id="admin-dropdown-name">Admin</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);" id="admin-dropdown-email">admin@email.com</div>
+        </div>
+        <button onclick="window.location.href='dashboard.html'"
+            style="width:100%;padding:8px 12px;background:none;border:none;color:var(--text-secondary);font-family:Inter,sans-serif;font-size:0.85rem;cursor:pointer;border-radius:var(--radius-sm);text-align:left;"
+            onmouseover="this.style.background='var(--bg-glass)'" onmouseout="this.style.background='none'">
+            📊 Student View
+        </button>
+        <button onclick="logout()"
+            style="width:100%;padding:8px 12px;background:none;border:none;color:var(--accent-red);font-family:Inter,sans-serif;font-size:0.85rem;cursor:pointer;border-radius:var(--radius-sm);text-align:left;"
+            onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='none'">
+            🚪 Sign Out
+        </button>
+    </div>
+
+    <!-- ─── App Layout ─── -->
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li class="sidebar-section-title">Management</li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link active" onclick="showAdminSection('admin-overview')"
+                        id="nav-admin-overview">
+                        <span class="icon">📊</span> Dashboard
+                    </div>
+                </li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showAdminSection('manage-events')" id="nav-manage-events">
+                        <span class="icon">📅</span> Manage Events
+                    </div>
+                </li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showAdminSection('create-event')" id="nav-create-event">
+                        <span class="icon">➕</span> Create Event
+                    </div>
+                </li>
+                <li class="sidebar-section-title">Certification</li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showAdminSection('attendance')" id="nav-attendance">
+                        <span class="icon">📋</span> Upload Attendance
+                    </div>
+                </li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showAdminSection('generate-certs')" id="nav-generate-certs">
+                        <span class="icon">🏆</span> Generate Certificates
+                    </div>
+                </li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showAdminSection('send-emails')" id="nav-send-emails">
+                        <span class="icon">📧</span> Send Certificates
+                    </div>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- ══════ ADMIN OVERVIEW ══════ -->
+            <section id="section-admin-overview" class="admin-section">
+                <div class="page-header">
+                    <h1 class="page-title">Admin <span class="text-gradient">Dashboard</span></h1>
+                    <p class="page-subtitle">Manage events, attendance, and certificates</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon purple">📅</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="admin-stat-events">0</div>
+                            <div class="stat-label">Total Events</div>
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon green">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="admin-stat-registrations">0</div>
+                            <div class="stat-label">Registrations</div>
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon orange">🏆</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="admin-stat-certificates">0</div>
+                            <div class="stat-label">Certificates Issued</div>
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon cyan">📧</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="admin-stat-emails">0</div>
+                            <div class="stat-label">Emails Sent</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Events Table -->
+                <div style="margin-top:var(--space-xl);">
+                    <h2 style="margin-bottom:var(--space-lg);">Recent Events</h2>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Registrations</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-events-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════ MANAGE EVENTS ══════ -->
+            <section id="section-manage-events" class="admin-section" style="display:none;">
+                <div class="page-header">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="page-title">📅 Manage Events</h1>
+                            <p class="page-subtitle">View and manage all your events</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showAdminSection('create-event')">
+                            ➕ Create Event
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-3 gap-lg" id="manage-events-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- ══════ CREATE EVENT ══════ -->
+            <section id="section-create-event" class="admin-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">➕ Create New Event</h1>
+                    <p class="page-subtitle">Fill in the details to create a new event</p>
+                </div>
+                <div class="glass-card" style="max-width:640px;">
+                    <form id="create-event-form" onsubmit="createEvent(event)">
+                        <div class="form-group">
+                            <label class="form-label" for="event-title">Event Title</label>
+                            <input class="form-input" type="text" id="event-title"
+                                placeholder="e.g. Web Development Workshop" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="event-desc">Description</label>
+                            <textarea class="form-textarea" id="event-desc" placeholder="Describe the event..."
+                                required></textarea>
+                        </div>
+                        <div class="grid grid-2 gap-lg">
+                            <div class="form-group">
+                                <label class="form-label" for="event-date">Date & Time</label>
+                                <input class="form-input" type="datetime-local" id="event-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="event-category">Category</label>
+                                <select class="form-select" id="event-category">
+                                    <option value="Technology">Technology</option>
+                                    <option value="Security">Security</option>
+                                    <option value="Cloud">Cloud</option>
+                                    <option value="Data Science">Data Science</option>
+                                    <option value="Mobile">Mobile</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-2 gap-lg">
+                            <div class="form-group">
+                                <label class="form-label" for="event-location">Location</label>
+                                <input class="form-input" type="text" id="event-location"
+                                    placeholder="e.g. Auditorium Hall A" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="event-max">Max Attendees</label>
+                                <input class="form-input" type="number" id="event-max" placeholder="100" min="1"
+                                    value="100">
+                            </div>
+                        </div>
+                        <div class="flex gap-md" style="margin-top:var(--space-md);">
+                            <button type="submit" class="btn btn-primary btn-lg">🚀 Create Event</button>
+                            <button type="button" class="btn btn-secondary btn-lg"
+                                onclick="document.getElementById('create-event-form').reset()">Clear</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ══════ UPLOAD ATTENDANCE ══════ -->
+            <section id="section-attendance" class="admin-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">📋 Upload Attendance</h1>
+                    <p class="page-subtitle">Upload a CSV or PDF file of attendees who attended the event</p>
+                </div>
+
+                <!-- Step 1: Select Event -->
+                <div class="glass-card" style="max-width:720px;margin-bottom:var(--space-xl);">
+                    <h3 style="margin-bottom:var(--space-lg);">Step 1: Select Event</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="attendance-event">Choose Event</label>
+                        <select class="form-select" id="attendance-event" onchange="onAttendanceEventChange()">
+                            <option value="">-- Select an event --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 2: Upload File -->
+                <div class="glass-card" style="max-width:720px;margin-bottom:var(--space-xl);" id="upload-step"
+                    style="display:none;">
+                    <h3 style="margin-bottom:var(--space-lg);">Step 2: Upload Attendance File</h3>
+                    <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:var(--space-lg);">
+                        Upload a <strong>CSV file</strong> with columns: <code
+                            style="background:var(--bg-glass);padding:2px 6px;border-radius:4px;">name, email</code><br>
+                        Or upload a <strong>PDF</strong> (attendance list will be extracted).
+                    </p>
+                    <div class="upload-zone" id="attendance-dropzone">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Drag & drop your file here, or click to browse</div>
+                        <div class="upload-hint">Supports CSV and PDF files (max 5MB)</div>
+                        <input type="file" id="attendance-file" accept=".csv,.pdf" onchange="handleFileUpload(this)">
+                    </div>
+                </div>
+
+                <!-- Step 3: Preview Attendees -->
+                <div class="glass-card" style="max-width:720px;" id="preview-step" style="display:none;">
+                    <div class="flex justify-between items-center" style="margin-bottom:var(--space-lg);">
+                        <h3>Step 3: Preview Attendees (<span id="attendee-count">0</span>)</h3>
+                        <button class="btn btn-success" onclick="confirmAttendance()" id="confirm-attendance-btn">
+                            ✅ Confirm Attendance
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendee-preview-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════ GENERATE CERTIFICATES ══════ -->
+            <section id="section-generate-certs" class="admin-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">🏆 Generate Certificates</h1>
+                    <p class="page-subtitle">Generate certificates for students who attended an event</p>
+                </div>
+
+                <div class="glass-card" style="max-width:720px;margin-bottom:var(--space-xl);">
+                    <div class="form-group">
+                        <label class="form-label" for="cert-event">Select Event</label>
+                        <select class="form-select" id="cert-event" onchange="loadCertEventAttendees()">
+                            <option value="">-- Select an event --</option>
+                        </select>
+                    </div>
+                    <div id="cert-attendees-info" style="display:none;margin-bottom:var(--space-lg);">
+                        <p style="color:var(--text-secondary);font-size:0.9rem;">
+                            <span id="cert-attendees-count">0</span> attendees found for this event.
+                        </p>
+                    </div>
+                    <button class="btn btn-primary btn-lg" onclick="generateCertificates()" id="generate-certs-btn"
+                        disabled>
+                        🏆 Generate Certificates
+                    </button>
+                </div>
+
+                <!-- Certificate Preview -->
+                <div id="cert-preview-container" style="display:none;">
+                    <h3 style="margin-bottom:var(--space-lg);">Certificate Preview</h3>
+                    <div class="certificate-preview" style="max-width:600px;">
+                        <div class="cert-title">Certificate of Participation</div>
+                        <div class="cert-subtitle">This is to certify that</div>
+                        <div class="cert-name" id="cert-preview-name">Student Name</div>
+                        <div class="cert-event">has successfully attended<br><strong id="cert-preview-event">Event
+                                Name</strong></div>
+                        <div class="cert-date" id="cert-preview-date">Issued on ...</div>
+                    </div>
+                </div>
+
+                <!-- Generated Certificates List -->
+                <div id="generated-certs-list" style="display:none;margin-top:var(--space-xl);">
+                    <h3 style="margin-bottom:var(--space-lg);">Generated Certificates</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Student</th>
+                                    <th>Email</th>
+                                    <th>Event</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="generated-certs-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════ SEND CERTIFICATES ══════ -->
+            <section id="section-send-emails" class="admin-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">📧 Send Certificates via Email</h1>
+                    <p class="page-subtitle">Email generated certificates to attendees</p>
+                </div>
+
+                <div class="glass-card" style="max-width:720px;margin-bottom:var(--space-xl);">
+                    <div class="form-group">
+                        <label class="form-label" for="email-event">Select Event</label>
+                        <select class="form-select" id="email-event" onchange="loadEmailEventCerts()">
+                            <option value="">-- Select an event --</option>
+                        </select>
+                    </div>
+                    <div id="email-certs-info" style="display:none;">
+                        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:var(--space-lg);">
+                            <span id="email-certs-count">0</span> certificates ready to send.
+                        </p>
+                        <div id="email-progress-container" style="display:none;margin-bottom:var(--space-lg);">
+                            <div class="flex justify-between items-center" style="margin-bottom:var(--space-sm);">
+                                <span style="font-size:0.85rem;color:var(--text-secondary);">Sending emails...</span>
+                                <span style="font-size:0.85rem;font-weight:600;" id="email-progress-text">0/0</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="email-progress-bar" style="width:0%;"></div>
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-lg" onclick="sendCertificateEmails()" id="send-emails-btn">
+                            📧 Send All Certificates
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email Log -->
+                <div id="email-log-container" style="display:none;">
+                    <h3 style="margin-bottom:var(--space-lg);">Email Log</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Sent At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="email-log-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ─── Toast Container ─── -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>
