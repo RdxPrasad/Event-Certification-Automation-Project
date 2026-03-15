@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — EventCert</title>
+    <meta name="description" content="View upcoming events, current events, registered events and your certificates.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- ─── Navbar ─── -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-brand">
+            <div class="brand-icon">🎓</div>
+            <span>Event<span class="text-gradient">Cert</span></span>
+        </div>
+        <div class="navbar-actions">
+            <div class="search-bar" style="width:280px;">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-events" placeholder="Search events..." oninput="filterEvents(this.value)">
+            </div>
+            <div class="navbar-user" onclick="toggleUserMenu()">
+                <div class="navbar-avatar" id="user-avatar">ST</div>
+                <span id="user-name" style="font-size:0.85rem;font-weight:500;">User</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ─── User Dropdown ─── -->
+    <div id="user-dropdown"
+        style="display:none;position:fixed;top:64px;right:20px;z-index:150;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:8px;min-width:180px;box-shadow:var(--shadow-lg);">
+        <div style="padding:8px 12px;border-bottom:1px solid var(--border-color);margin-bottom:4px;">
+            <div style="font-size:0.85rem;font-weight:600;" id="dropdown-name">User</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);" id="dropdown-email">user@email.com</div>
+        </div>
+        <button onclick="logout()"
+            style="width:100%;padding:8px 12px;background:none;border:none;color:var(--accent-red);font-family:Inter,sans-serif;font-size:0.85rem;cursor:pointer;border-radius:var(--radius-sm);text-align:left;"
+            onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='none'">
+            🚪 Sign Out
+        </button>
+    </div>
+
+    <!-- ─── App Layout ─── -->
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <ul class="sidebar-nav">
+                <li class="sidebar-section-title">Navigation</li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link active" onclick="showSection('overview')" id="nav-overview">
+                        <span class="icon">📊</span> Overview
+                    </div>
+                </li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showSection('upcoming')" id="nav-upcoming">
+                        <span class="icon">📅</span> Upcoming Events
+                    </div>
+                </li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showSection('current')" id="nav-current">
+                        <span class="icon">⚡</span> Current Events
+                    </div>
+                </li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showSection('registered')" id="nav-registered">
+                        <span class="icon">✅</span> My Registrations
+                    </div>
+                </li>
+                <li class="sidebar-section-title">Achievements</li>
+                <li class="sidebar-item">
+                    <div class="sidebar-link" onclick="showSection('certificates')" id="nav-certificates">
+                        <span class="icon">🏆</span> My Certificates
+                    </div>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- ══════ OVERVIEW SECTION ══════ -->
+            <section id="section-overview" class="page-section active">
+                <div class="page-header">
+                    <h1 class="page-title">Welcome back, <span class="text-gradient" id="welcome-name">Student</span>
+                    </h1>
+                    <p class="page-subtitle">Here's what's happening across your events</p>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon purple">📅</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-upcoming">0</div>
+                            <div class="stat-label">Upcoming Events</div>
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon green">⚡</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-current">0</div>
+                            <div class="stat-label">Current Events</div>
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon orange">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-registered">0</div>
+                            <div class="stat-label">Registered</div>
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in">
+                        <div class="stat-icon cyan">🏆</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-certificates">0</div>
+                            <div class="stat-label">Certificates</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Events Preview -->
+                <div style="margin-bottom:var(--space-2xl);">
+                    <div class="flex justify-between items-center" style="margin-bottom:var(--space-lg);">
+                        <h2>⚡ Current Events</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="showSection('current')">View All →</button>
+                    </div>
+                    <div class="grid grid-3 gap-lg" id="overview-current-events">
+                        <div class="empty-state glass-card">
+                            <div class="empty-icon">⚡</div>
+                            <div class="empty-title">No current events</div>
+                            <div class="empty-desc">Check back soon!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Events Preview -->
+                <div>
+                    <div class="flex justify-between items-center" style="margin-bottom:var(--space-lg);">
+                        <h2>📅 Upcoming Events</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="showSection('upcoming')">View All →</button>
+                    </div>
+                    <div class="grid grid-3 gap-lg" id="overview-upcoming-events">
+                        <div class="empty-state glass-card">
+                            <div class="empty-icon">📅</div>
+                            <div class="empty-title">No upcoming events</div>
+                            <div class="empty-desc">Events will appear here</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════ UPCOMING EVENTS SECTION ══════ -->
+            <section id="section-upcoming" class="page-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">📅 Upcoming Events</h1>
+                    <p class="page-subtitle">Events happening soon — register before it's too late!</p>
+                </div>
+                <div class="grid grid-3 gap-lg" id="upcoming-events-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- ══════ CURRENT EVENTS SECTION ══════ -->
+            <section id="section-current" class="page-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">⚡ Current Events</h1>
+                    <p class="page-subtitle">Events happening right now</p>
+                </div>
+                <div class="grid grid-3 gap-lg" id="current-events-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- ══════ MY REGISTRATIONS SECTION ══════ -->
+            <section id="section-registered" class="page-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">✅ My Registrations</h1>
+                    <p class="page-subtitle">Events you've registered for</p>
+                </div>
+                <div id="registered-events-container">
+                    <div class="table-container" id="registrations-table-container" style="display:none;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Registered At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registrations-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="empty-state glass-card" id="no-registrations">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-title">No registrations yet</div>
+                        <div class="empty-desc">Browse upcoming events and register for ones that interest you!</div>
+                        <button class="btn btn-primary" style="margin-top:1rem;"
+                            onclick="showSection('upcoming')">Browse Events</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════ MY CERTIFICATES SECTION ══════ -->
+            <section id="section-certificates" class="page-section" style="display:none;">
+                <div class="page-header">
+                    <h1 class="page-title">🏆 My Certificates</h1>
+                    <p class="page-subtitle">Certificates you've earned for attending events</p>
+                </div>
+                <div id="certificates-container">
+                    <div class="grid grid-2 gap-lg" id="certificates-grid" style="display:none;">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="empty-state glass-card" id="no-certificates">
+                        <div class="empty-icon">🏆</div>
+                        <div class="empty-title">No certificates yet</div>
+                        <div class="empty-desc">Attend events to earn certificates. Organizers will generate them after
+                            the event ends.</div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ─── Toast Container ─── -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ─── Event Detail Modal ─── -->
+    <div class="modal-overlay" id="event-modal-overlay">
+        <div class="modal" id="event-modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-event-title">Event Details</h3>
+                <button class="modal-close" onclick="closeEventModal()">✕</button>
+            </div>
+            <div id="modal-event-body">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>
